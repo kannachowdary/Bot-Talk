@@ -1,0 +1,83 @@
+What this does
+A Telegram bot that replies to text using a chat-tuned LLM, transcribes voice notes to text, and extracts handwriting/text from images before replying with the model’s answer.
+
+Prerequisites
+A Telegram Bot token created with BotFather (store in TELEGRAM_BOT_TOKEN) and a Hugging Face token (HF_TOKEN) if the chosen model requires license acceptance.
+
+System packages for OCR and audio: install Tesseract OCR and FFmpeg so pytesseract and pydub can function properly during voice and image handling.
+
+Linux/Ubuntu system packages:
+
+sudo apt update && sudo apt install -y tesseract-ocr ffmpeg to provide the Tesseract engine and FFmpeg binaries required by pytesseract and pydub respectively.
+
+Python packages:
+
+pip install -U accelerate transformers telebot SpeechRecognition pyTelegramBotAPI pydub pillow pytesseract to match notebook functionality for model loading, bot API, speech recognition, audio conversion, and OCR.
+
+Configure tokens and model
+Export TELEGRAM_BOT_TOKEN and optionally HF_TOKEN in the environment, and choose a model by setting MODEL_ID (default: Qwen/Qwen2.5-3B-Instruct) for strong small-chat performance and long-context support.
+
+Example (Linux/macOS):
+
+export TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN" sets the Telegram bot token for bot authentication.
+
+export HF_TOKEN="YOUR_HF_TOKEN" passes a Hugging Face token when using gated or license-restricted repositories on Hugging Face.
+
+export MODEL_ID="Qwen/Qwen2.5-3B-Instruct" selects the default Qwen2.5 3B Instruct model; alternative: export MODEL_ID="microsoft/Phi-3-mini-4k-instruct" if preferring Phi-3 Mini.
+
+Run
+python telebot_app.py starts the polling loop; the bot will print the model, device, and dtype used, then respond to /start, text messages, voice notes, and photos with OCR.
+
+If using a GPU like T4, the script will automatically prefer float16, which is generally more compatible than bfloat16 on non-Ampere devices for speed and memory efficiency.
+
+Model options
+Default: Qwen/Qwen2.5-3B-Instruct for an instruction-tuned, small, capable chat model with improved instruction following, long-text, and multilingual support.
+
+Alternative: microsoft/Phi-3-mini-4k-instruct for a 3.8B chat-tuned model designed for strong instruction following and efficiency on modest hardware.
+
+Alternative: google/gemma-2-2b-it for a lightweight, instruction-tuned successor to the original Gemma 2B; ensure license terms are accepted on Hugging Face if required.
+
+Notes and troubleshooting
+Tesseract path: If pytesseract can’t find Tesseract, set pytesseract.pytesseract.tesseract_cmd to the system path (commonly /usr/bin/tesseract on Linux) or install via apt first as shown above.
+
+FFmpeg for pydub: If AudioSegment.from_file fails, verify ffmpeg -version works or install FFmpeg with apt to enable decoding and format conversions for .ogg voice notes.
+
+Tokens and gated models: Some models require accepting a license on their Hugging Face page; use HF_TOKEN and ensure access has been granted before running the script.
+
+Prompting: The script uses apply_chat_template to format messages for chat-tuned models, mirroring the original notebook’s approach for consistent instruction-following behavior.
+
+One-liners (Ubuntu)
+System deps: sudo apt update && sudo apt install -y tesseract-ocr ffmpeg ensures OCR and audio conversion work out-of-the-box.
+
+Python deps: pip install -U accelerate transformers telebot SpeechRecognition pyTelegramBotAPI pydub pillow pytesseract installs required libraries for the bot, model pipeline, ASR, and OCR.
+
+
+requirements.txt
+If a requirements.txt is preferred, this matches the notebook’s imports and keeps Torch unpinned to let pip resolve the appropriate wheel for CPU/GPU environments while pinning the versions the notebook already uses for Accelerate and Transformers.
+
+text
+accelerate==0.27.1
+transformers==4.38.0
+torch
+pyTelegramBotAPI
+SpeechRecognition
+pydub
+pillow
+pytesseract
+
+Quick start checklist
+Create a Telegram bot and save its token: TELEGRAM_BOT_TOKEN.
+
+Accept the model license on Hugging Face if needed and set HF_TOKEN.
+
+Install tesseract-ocr and ffmpeg system-wide, then pip install Python requirements.
+
+Run python telebot_app.py and send /start, text, a voice note, or a photo with handwriting to test end-to-end.
+
+Optional: switch models
+To switch models without changing code, set MODEL_ID env var before running, e.g., MODEL_ID="microsoft/Phi-3-mini-4k-instruct" for Microsoft Phi-3 Mini 4K Instruct.
+
+Keep the rest of the script unchanged; the pipeline and chat template logic will work with these chat-tuned models as shown.
+
+Why Qwen2.5-3B-Instruct by default
+It is an instruction-tuned 3B chat model with improved instruction following, long-context support, and multilingual capability, making it a robust default choice for a Telegram assistant on modest hardware

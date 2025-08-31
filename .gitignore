@@ -1,0 +1,3 @@
+# Ignore all PowerShell scripts
+*.ps1
+*.md
